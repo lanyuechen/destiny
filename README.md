@@ -50,6 +50,10 @@ Currently, two official plugins are available:
 
 ```
 
+- 黑黄道
+- 建除十二神
+- 小六壬
+
 
 - [黄道吉凶推算](https://www.163.com/dy/article/HNO582GA0552V1TU.html)
 - [四柱八字推算](https://baike.baidu.com/item/%E5%9B%9B%E6%9F%B1/750027#:~:text=%E5%9B%9B%E6%9F%B1_%E7%99%BE%E5%BA%A6%E7%99%BE%E7%A7%91&text=%E5%9B%9B%E6%9F%B1%E6%98%AF%E3%80%8A%E6%98%93%E7%BB%8F%E3%80%8B%E4%B8%AD,%E6%97%A5%E6%9F%B1%E5%92%8C%E6%97%B6%E6%9F%B1%E3%80%82)

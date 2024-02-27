@@ -4,6 +4,23 @@ export default class Calendar {
   // 地支
   static DI_ZHI = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
   static SHENG_XIAO = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
+  // 十二建星
+  // 正月建寅，二月建卯，三月建辰，四月建巳，五月建午，六月建未，七月建申，八月建酉，九月建戌，十月建亥，十一月建子，十二月建丑。
+  static JIAN_CHU = ['建', '除', '满', '平', '定', '执', '破', '危', '成', '收', '开', '闭'];
+  /**
+   * 《神枢经》有云：“青龙、明堂、金匮、天德、玉堂、司命，皆月内天黄道之神也。
+   * 所值之日，皆宜兴众务，不避太岁、将军、月刑。一切凶恶，自然避之。
+   * 天刑、朱雀、白虎、天牢、玄武、勾陈者，月中黑道也。
+   * 所理之方、所值之日皆不可兴土功、营屋舍、稀途、远行、嫁娶、出军。”
+   * 
+   * 《三曆同会》云：凡吉凶百事得黄道为顺，大吉，黑道为逆，百事皆凶。
+   */
+  static HUANG_DAO = ['青龙', '天德', '玉堂', '司命', '明堂', '金匮'];
+  // 小黄道日 // 除、危、定、执、成、开
+  static HEI_DAO = ['白虎', '天刑', '朱雀', '天牢', '玄武', '勾陈'];
+  static HUANG_HEI_DAO = ['青龙', '明堂', '天刑', '朱雀', '金贵', '天德', '白虎', '玉堂', '天牢', '玄武', '司命', '勾陈'];
+  // static x = '道远几时通达，路遥何日还乡';
+  static HUANG_HEI_DAO_MASK = [1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0];
 
   static LUNAR_MONTH = ['正', '二', '三', '四', '五', '六', '七', '八', '九', '十', '冬', '腊'];
   static LUNAR_DAY = [
@@ -142,11 +159,27 @@ export default class Calendar {
 
     const shiZhu = `${shiGan}${shiZhi}`;
 
+    // 子午申上起，卯酉却居寅。
+    // 寅申居子地，巳亥午宫轮。
+    // 辰戌龙位上，丑未戌宫寻。
+    // 黄黑到
+    const huangHeiDaoStartIndex = (yueZhiIndex * 2 + 7) % 12 || 12;
+    const jiXiongIndex = (riZhiIndex - huangHeiDaoStartIndex + 12) % 12 + 1;
+    const zhiShi = Calendar.HUANG_HEI_DAO[jiXiongIndex - 1];
+
+    // 十二建除
+    const jianChuStartIndex = (lm + 2) % 12 || 12;
+    const jianChuIndex = (riZhiIndex - jianChuStartIndex + 12) % 12 + 1;
+    const jianChu = Calendar.JIAN_CHU[jianChuIndex - 1];
+
     return {
       ly,
       lm,
       ld,
       isLeap,
+      zhiShi,
+      jianChu,
+      jiXiong: Calendar.HUANG_DAO.includes(zhiShi),
       shengxiao: Calendar.SHENG_XIAO[(ly - 4) % 12],
       solar: `${y}年${m}月${d}日`,
       lunar: `农历${ly}年${Calendar.LUNAR_MONTH[lm - 1]}月${Calendar.LUNAR_DAY[ld - 1]}`,

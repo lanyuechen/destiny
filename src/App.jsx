@@ -4,7 +4,7 @@ window.Calendar = Calendar;
 
 export default () => {
 
-  console.log('+++', Calendar.siZhu(1973, 1, 1, 17))
+  console.log('+++', Calendar.siZhu(1949, 10, 1, 8))
 
   return (
     <>
