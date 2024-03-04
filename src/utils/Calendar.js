@@ -1,3 +1,6 @@
+import SHEN_SHA from './shenSha';
+import getShenSha from './rishensha';
+
 export default class Calendar {
   // 天干
   static TIAN_GAN = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
@@ -5,7 +8,6 @@ export default class Calendar {
   static DI_ZHI = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
   static SHENG_XIAO = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
   // 十二建星
-  // 正月建寅，二月建卯，三月建辰，四月建巳，五月建午，六月建未，七月建申，八月建酉，九月建戌，十月建亥，十一月建子，十二月建丑。
   static JIAN_CHU = ['建', '除', '满', '平', '定', '执', '破', '危', '成', '收', '开', '闭'];
   /**
    * 《神枢经》有云：“青龙、明堂、金匮、天德、玉堂、司命，皆月内天黄道之神也。
@@ -15,10 +17,10 @@ export default class Calendar {
    * 
    * 《三曆同会》云：凡吉凶百事得黄道为顺，大吉，黑道为逆，百事皆凶。
    */
-  static HUANG_DAO = ['青龙', '天德', '玉堂', '司命', '明堂', '金匮'];
-  // 小黄道日 // 除、危、定、执、成、开
-  static HEI_DAO = ['白虎', '天刑', '朱雀', '天牢', '玄武', '勾陈'];
-  static HUANG_HEI_DAO = ['青龙', '明堂', '天刑', '朱雀', '金贵', '天德', '白虎', '玉堂', '天牢', '玄武', '司命', '勾陈'];
+  static HUANG_HEI_DAO = [
+    '青龙(黄道)', '明堂(黄道)', '天刑(黑道)', '朱雀(黑道)', '金匮(黄道)', '天德(黄道)',
+    '白虎(黑道)', '玉堂(黄道)', '天牢(黑道)', '玄武(黑道)', '司命(黄道)', '勾陈(黑道)',
+  ];
   // static x = '道远几时通达，路遥何日还乡';
   static HUANG_HEI_DAO_MASK = [1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0];
 
@@ -118,72 +120,85 @@ export default class Calendar {
   static siZhu(y, m, d, h) {
     const { ly, lm, ld, isLeap } = Calendar.solar2Lunar(y, m, d);
 
-    // 从已知的年份减3,然后在除以10余数就是年干
-    const nianGanIndex = (ly - 3) % 10 || 10 // 1 ~ 10
-    const nianGan = Calendar.TIAN_GAN[nianGanIndex - 1];
+    // 从已知的年份减3,然后再除以10余数就是年干
+    // 年干索引 = (农历年份 - 4) % 10
+    const nianGanIndex = (ly - 3 - 1) % 10 // 0 ~ 9
+    const nianGan = Calendar.TIAN_GAN[nianGanIndex];
 
     // 从已知的年份减3,然后在除以12余数就是年支
-    const nianZhiIndex = (ly - 3) % 12 || 12 // 1 ~ 12
-    const nianZhi = Calendar.DI_ZHI[nianZhiIndex - 1];
+    // 年支索引 = (农历年份 - 4) % 12
+    const nianZhiIndex = (ly - 3 - 1) % 12 // 0 ~ 11
+    const nianZhi = Calendar.DI_ZHI[nianZhiIndex];
 
     const nianZhu = `${nianGan}${nianZhi}`;
 
     // 用年干乘以2，尾数再加月份，最后一位数就是当月的月干
-    const yueGanIndex = (nianGanIndex * 2 + lm) % 10 || 10; // 1 ~ 10
-    const yueGan = Calendar.TIAN_GAN[yueGanIndex - 1];
+    // 月干索引 = ((年干数 * 2) - 1 + 月份) % 10
+    const yueGanIndex = ((nianGanIndex + 1) * 2 - 1 + lm) % 10; // 0 ~ 9
+    const yueGan = Calendar.TIAN_GAN[yueGanIndex];
 
     // 固定的，1月：寅，2月：卯，... 11月：子，12月：丑
-    const yueZhiIndex = (lm + 2) % 12 || 12; // 1 ~ 12
-    const yueZhi = Calendar.DI_ZHI[yueZhiIndex - 1];
+    const yueZhiIndex = (lm + 1) % 12; // 0 ~ 11
+    const yueZhi = Calendar.DI_ZHI[yueZhiIndex];
 
     const yueZhu = `${yueGan}${yueZhi}`;
 
     // 当前日期与 1900/1/1 相差天数
-    const offset = (Date.UTC(y, m - 1, d) - Date.UTC(1900, 0, 1)) / 86400000 + 10 + 1; // ? 目前不明白为什么+10
+    const offset = (Date.UTC(y, m - 1, d) - Date.UTC(1900, 0, 1)) / 86400000 + 10; // ? 目前不明白为什么+10
 
-    const riGanIndex = offset % 10 || 10;
-    const riGan = Calendar.TIAN_GAN[riGanIndex - 1];
+    const riGanIndex = offset % 10;
+    const riGan = Calendar.TIAN_GAN[riGanIndex];
 
-    const riZhiIndex = offset % 12 || 12;
-    const riZhi = Calendar.DI_ZHI[riZhiIndex - 1];
+    const riZhiIndex = offset % 12;
+    const riZhi = Calendar.DI_ZHI[riZhiIndex];
 
     const riZhu = `${riGan}${riZhi}`;
 
     // 23~1时：子时，1~3时：丑时，...
-    const shiZhiIndex = Math.floor((h + 1) % 24 / 2) + 1;
-    const shiZhi = Calendar.DI_ZHI[shiZhiIndex - 1];
+    const shiZhiIndex = Math.floor((h + 1) % 24 / 2);
+    const shiZhi = Calendar.DI_ZHI[shiZhiIndex];
 
     // 时干公式：日干乘以二，加上时支数，再减二，尾数就为时干
-    const shiGanIndex = (riGanIndex * 2 + shiZhiIndex - 2) % 10 || 10;
-    const shiGan = Calendar.TIAN_GAN[shiGanIndex - 1];
+    const shiGanIndex = ((riGanIndex + 1) * 2 + (shiZhiIndex + 1) - 2 - 1) % 10;
+    const shiGan = Calendar.TIAN_GAN[shiGanIndex];
 
     const shiZhu = `${shiGan}${shiZhi}`;
 
-    // 子午申上起，卯酉却居寅。
-    // 寅申居子地，巳亥午宫轮。
-    // 辰戌龙位上，丑未戌宫寻。
-    // 黄黑到
-    const huangHeiDaoStartIndex = (yueZhiIndex * 2 + 7) % 12 || 12;
-    const jiXiongIndex = (riZhiIndex - huangHeiDaoStartIndex + 12) % 12 + 1;
-    const zhiShi = Calendar.HUANG_HEI_DAO[jiXiongIndex - 1];
-
-    // 十二建除
-    const jianChuStartIndex = (lm + 2) % 12 || 12;
-    const jianChuIndex = (riZhiIndex - jianChuStartIndex + 12) % 12 + 1;
-    const jianChu = Calendar.JIAN_CHU[jianChuIndex - 1];
+    const huangHeiDao = Calendar.getHuangHeiDao(yueZhiIndex, riZhiIndex);
+    const jianChu = Calendar.getJianChu(lm, riZhiIndex);
+    const shenSha = getShenSha(yueZhi, `${riGan}${riZhi}`);
 
     return {
       ly,
       lm,
       ld,
       isLeap,
-      zhiShi,
+      huangHeiDao,
       jianChu,
-      jiXiong: Calendar.HUANG_DAO.includes(zhiShi),
+      shenSha,
       shengxiao: Calendar.SHENG_XIAO[(ly - 4) % 12],
       solar: `${y}年${m}月${d}日`,
       lunar: `农历${ly}年${Calendar.LUNAR_MONTH[lm - 1]}月${Calendar.LUNAR_DAY[ld - 1]}`,
       ganZhi: `${nianZhu}年 ${yueZhu}月 ${riZhu}日 ${shiZhu}时`,
     };
+  }
+
+  static getHuangHeiDao(yueZhiIndex, riZhiIndex) {
+    // 黄黑道
+    // 子午申上起，卯酉却居寅。
+    // 寅申居子地，巳亥午宫轮。
+    // 辰戌龙位上，丑未戌宫寻。
+    const huangHeiDaoStartIndex = (yueZhiIndex * 2 + 9 - 1) % 12;
+    const huangHeiDaoIndex = (riZhiIndex - huangHeiDaoStartIndex + 12) % 12;
+    return Calendar.HUANG_HEI_DAO[huangHeiDaoIndex];
+  }
+
+  static getJianChu(lm, riZhiIndex) {
+    // 十二建除
+    // 正月建寅，二月建卯，三月建辰，四月建巳，五月建午，六月建未，
+    // 七月建申，八月建酉，九月建戌，十月建亥，冬月建子，腊月建丑。
+    const jianChuStartIndex = (lm + 1) % 12;
+    const jianChuIndex = (riZhiIndex - jianChuStartIndex + 12) % 12;
+    return Calendar.JIAN_CHU[jianChuIndex];
   }
 }
